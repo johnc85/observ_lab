@@ -1,6 +1,10 @@
 # observ-lab
 observ-lab
 
+### k3d
+```
+k3d cluster create observ --agents 6
+```
 
 ## Idea
 
