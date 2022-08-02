@@ -1,0 +1,20 @@
+
+{{- if .Values.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    release: kube-prometheus-stack
+    app.kubernetes.io/instance: myapp
+    app.kubernetes.io/name: myapp
+spec:
+  endpoints:
+  - port: http
+    path: {{ .Values.serviceMonitor.path}}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: myapp
+      app.kubernetes.io/name: myapp
+{{- end }}
