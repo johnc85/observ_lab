@@ -1,4 +1,4 @@
-# observ-lab
+# observ-lab :eyes:
 Simple observability lab 
 
 ## Main Idea
@@ -182,7 +182,7 @@ docker run -d --name mycontainer -p 80:80 myapp
 ```
 
 
-## Running k8
+## Running k8 :anchor:
 
 ### k3d
 Installing k3d 
@@ -193,7 +193,7 @@ Create cluster
 k3d cluster create observ --agents 6
 ```
 
-### Provisioning via tf
+### Provisioning via terraform :construction_worker:
 Execute the file `exec.tf` filling the vars source and cluster_name:
 ```
 module "test-module" {
@@ -201,10 +201,18 @@ module "test-module" {
   cluster_name = "your_k3d_cluster_name"
 }
 ```
+Inside `observ-module`, run:
+```
+terraform init
+```
+```
+terraform apply
+```
+I truly recommend you :pray: + :coffee:
 
-## Grafana 
+## Single pane of glass - Grafana :crystal_ball:
 
-### Access
+### Get Access
 
 ```
 kubectl port-forward svc/kube-prometheus-stack-grafana 9090:80 -n monitoring
@@ -223,7 +231,6 @@ Username
 ```
 ➜echo 'YWRtaW4=' | base64 -d
 ```
-
 
 ### Loki + Tempo
 After login, click in the left side on explore button and set `loki` datasource to find some syntetic log + trace
@@ -253,10 +260,10 @@ starlette_requests_total{namespace="myapp", path_template="/number"}
 And we can see something like the printscreen below
 ![Prometheus](image/prometheus.png)
 
-## Decommissioning
+## Decommissioning :hammer:
 Just run the command below
 ```
 k3d cluster delete observ
 ```
 
-See you next time! 
+See you next time! :metal:
