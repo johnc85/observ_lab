@@ -13,3 +13,4 @@ data "template_file" "tempo" {
 data "template_file" "prometheus" {
   template = file("${path.module}/templates/prometheus.tpl")
 }
+

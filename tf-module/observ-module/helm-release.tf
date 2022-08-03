@@ -46,6 +46,7 @@ resource "helm_release" "prometheus" {
   create_namespace = true
   namespace        = "monitoring"
   wait             = true
+  timeout          = 665
   values           = [data.template_file.prometheus.rendered]
   depends_on       = [helm_release.tempo]
 }

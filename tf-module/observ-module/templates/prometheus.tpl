@@ -137,8 +137,8 @@ grafana:
         derivedFields:
           - datasourceUid: Tempo
             matcherRegex: "[t|T][R|r][A|a][C|c][E|e][i|I][d|D][:|=|\\s](\\w+)"
-            name: TraceId
-            url: "$${__value.raw}"
+            name: "TraceId"
+            url: '"$${__value.raw}"'
 
     - name: Tempo
       type: tempo
