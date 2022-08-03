@@ -1,25 +1,19 @@
 # observ-lab
-observ-lab
+Simple observability lab 
 
-### k3d
-```
-k3d cluster create observ --agents 6
-```
-
-## Idea
+## Main Idea
 
 The idea of this lab is to have an application with white box instrumentation. 
 To achive full experience, you must have installed:
-- kind
+- k3d
 - docker
-- helm
+- helm3
 - any web browser
-- python
-- terraform
-## Architecture
+- python3 + pip3
+- terraform (at least v1.1.8)
 
-## App
-Simple app with an API that returns random number between 0 and 999.
+## About the Application
+Create a simple app with an API that returns random number between 0 and 999.
 
 The web framework [fastapi](https://github.com/tiangolo/fastapi) was the choice.
 
@@ -27,11 +21,12 @@ The web framework [fastapi](https://github.com/tiangolo/fastapi) was the choice.
 
 | HTTP method   |      API endpoint      |  Description |
 |----------|:-------------:|------:|
+| GET |  /          | alive check (health)   |
 | GET |  /number    | Get random numbers |
 | GET |  /metrics   | Get some metrics   |
 
 
-### Running localy
+### Running locally
 Probably some libs will be necessary:
 
 ```
@@ -55,7 +50,7 @@ You can test the applicaction via curl:
 {"Number":532}%
 ```
 
-You can metrics also via curl:
+You can get some metrics also via curl:
 ```
 curl http://127.0.0.1:8000/metrics
 # HELP python_gc_objects_collected_total Objects collected during gc
@@ -169,7 +164,6 @@ starlette_requests_in_progress{method="GET",path_template="/metrics"} 1.0
 Or you can use swagger UI via broser:
 `http://127.0.0.1:8000/docs`
 
-
 ### Building the application - Docker
 
 Locking version
@@ -189,98 +183,80 @@ docker run -d --name mycontainer -p 80:80 myapp
 
 
 ## Running k8
-- Create kind cluster
+
+### k3d
+Installing k3d 
+https://k3d.io/v5.4.4/#installation
+
+Create cluster
 ```
-kind create cluster --image kindest/node:v1.24.2 --config - <<EOF
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-kubeadmConfigPatches:
-- |-
-  kind: ClusterConfiguration
-  # configure controller-manager bind address
-  controllerManager:
-    extraArgs:
-      bind-address: 0.0.0.0
-  # configure etcd metrics listen address
-  etcd:
-    local:
-      extraArgs:
-        listen-metrics-urls: http://0.0.0.0:2381
-  # configure scheduler bind address
-  scheduler:
-    extraArgs:
-      bind-address: 0.0.0.0
-- |-
-  kind: KubeProxyConfiguration
-  # configure proxy metrics bind address
-  metricsBindAddress: 0.0.0.0
-nodes:
-  - role: control-plane
-  - role: control-plane
-  - role: control-plane
-  - role: worker
-  - role: worker
-  - role: worker
-  - role: worker
-  - role: worker
-EOF
+k3d cluster create observ --agents 6
 ```
 
-- Check if the cluster is up and running
+### Provisioning via tf
+Execute the file `exec.tf` filling the vars source and cluster_name:
 ```
-kubectl cluster-info --context kind-observ-lab
-kubectl get nodes
-kubectl get pods -A
-```
-
-## Provisioning observ tools
-
-### Prometheus
-
-```
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
+module "test-module" {
+  source       = "/path/observ-lab/tf-module/observ-module"
+  cluster_name = "your_k3d_cluster_name"
+}
 ```
 
-```
-helm upgrade --install \
-  --namespace monitoring --create-namespace \
-  --repo https://prometheus-community.github.io/helm-charts \
-  -f helm/kube-prometheus/values.yaml \
-  kube-prometheus-stack kube-prometheus-stack 
-```
+## Grafana 
 
-### Loki
+### Access
 
 ```
-helm install loki grafana/loki-simple-scalable -n loki --create-namespace -f helm/loki/values.yaml
+kubectl port-forward svc/kube-prometheus-stack-grafana 9090:80 -n monitoring
 ```
+Access via browser the follow url:
+`http://localhost:9090/`
 
-### Promtail
+### Decode base64 to get credentials
 
-```
-helm install promtail grafana/promtail -n loki -f helm/promtail/values.yaml
-```
-
-### Tempo
-
-```
-helm install tempo grafana/tempo-distributed -n tempo --create-namespace -f helm/tempo/values.yaml
-```
-
-### Grafana decode
-
+Passwd
 ```
 ➜echo 'cHJvbS1vcGVyYXRvcg==' | base64 -d
-prom-operator
-(⎈ |kind-kind:monitoring)
-18:04:37 in microservices-demo/deploy/kubernetes on  master [!?] on 🐳 v20.10.12
+```
+
+Username
+```
 ➜echo 'YWRtaW4=' | base64 -d
-admin
 ```
 
-### Synthetic-load-generator
 
+### Loki + Tempo
+After login, click in the left side on explore button and set `loki` datasource to find some syntetic log + trace
+The logql code should be:
 ```
-k apply -f helm/syntetic-microservice/deploy.yaml
+{namespace="synthetic-load-generator"} |= ``
 ```
+
+And we can see something like the printscreen below
+![Loki + Tempo](image/tempo%2Bloki.png)
+### Prometheus
+
+Firstly, hit the `myapp` api to increase http_request metric:
+```
+kubectl port-forward svc/myapp 9091:80 -n myapp 
+```
+Hiting
+```
+➜curl http://127.0.0.1:9091/number
+{"Number":147}
+```     
+
+To see some app metrics, change the datasource to grafana and use this promql to plot request metrics
+```
+starlette_requests_total{namespace="myapp", path_template="/number"}
+```
+And we can see something like the printscreen below
+![Prometheus](image/prometheus.png)
+
+## Decommissioning
+Just run the command below
+```
+k3d cluster delete observ
+```
+
+See you next time! 
