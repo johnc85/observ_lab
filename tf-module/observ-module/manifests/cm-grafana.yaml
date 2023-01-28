@@ -16,10 +16,10 @@ data:
       jsonData:
         derivedFields:
         - datasourceUid: Tempo
-          matcherRegex: '[t|T][R|r][A|a][C|c][E|e][i|I][d|D][:|=|\s](\w+)'
-          name: TraceId
+          matcherRegex: ((\d+|[a-z]+)(\d+|[a-z]+)(\d+|[a-z]+)(\d+|[a-z]+)(\d+|[a-z]+)(\d+|[a-z]+)(\d+|[a-z]+)(\d+|[a-z]+)(\d+|[a-z]+)(\d+|[a-z]+)(\d+|[a-z]+))
+          name: TraceID
           url: "$${__value.raw}"
-        maxLines: 1000
+        maxLines: 2000
         tlsSkipVerify: true
       name: Loki
       type: loki
