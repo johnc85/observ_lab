@@ -59,6 +59,6 @@ resource "helm_release" "myapp" {
   version          = var.myapp_tag
   create_namespace = true
   namespace        = "myapp"
-  wait             = true
+  wait             = false
   depends_on       = [helm_release.prometheus]
 }
