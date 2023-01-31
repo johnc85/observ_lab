@@ -1,4 +1,4 @@
 module "test-module" {
-  source       = "/Users/apm/Documents/workspace/observ-lab/tf-module/observ-module"
+  source       = "/Users/johncaracho/Documents/repos/observ-lab/tf-module/observ-module"
   cluster_name = "observ"
 }
